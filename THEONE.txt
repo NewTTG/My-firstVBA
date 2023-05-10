@@ -1,0 +1,264 @@
+Sub Data()
+
+    Dim wsImportVoixData As Worksheet
+    Dim wsImportVoix As Worksheet
+    Dim wsCouvertureVoix As Worksheet
+    Dim LastRow As Long
+    Dim i As Long
+    Dim count1G As Long
+    Dim count1GNonZero As Long
+    Dim count1GB As Long
+    Dim count1GBNonZero As Long
+    Dim countLTE As Long
+    Dim countUMTS As Long
+    Dim countGSM As Long
+    Dim sum1G As Double
+    Dim sum1GB As Double
+    Dim maxValue1G As Double
+    Dim maxValue1GB As Double
+    Dim minValue1G As Double
+    Dim minValue1GB As Double
+    Dim currentValue As Double
+
+      ' Définir les feuilles de calcul
+    Set wsImportVoixData = Worksheets("Import Voix_Data")
+    Set wsImportVoix = Worksheets("Import Voix_Data")
+    Set wsCouvertureVoix = Worksheets("Couverture Voix_Data")
+    
+    ' Déterminer la dernière ligne de la colonne B de la feuille Import Voix
+    LastRow = wsImportVoix.Cells(wsImportVoix.Rows.count, "B").End(xlUp).row
+
+    ' Vérifier si la feuille de calcul "Import Voix_Data" est vide
+    If LastRow < 2 Then
+        MsgBox "La feuille de calcul 'Import Voix_Data' est vide. Veuillez ajouter des données avant de continuer.", vbExclamation, "Erreur : Feuille vide"
+        Exit Sub
+    End If
+
+    ' Initialiser les compteurs et les valeurs min/max
+    countLTE = 0
+    countUMTS = 0
+    countGSM = 0
+    sum1G = 0
+    sum1GB = 0
+    count1G = 0
+    count1GB = 0
+    maxValue1G = 0
+    maxValue1GB = 0
+    minValue1G = 10 ^ 10
+    minValue1GB = 10 ^ 10
+
+    ' Parcourir les données et collecter les informations pertinentes
+    For i = 2 To LastRow
+        ' Compter les occurrences de chaque technologie
+        Select Case LCase(wsImportVoixData.Cells(i, "S").value)
+            Case "lte"
+                countLTE = countLTE + 1
+            Case "umts"
+                countUMTS = countUMTS + 1
+            Case "gsm"
+                countGSM = countGSM + 1
+        End Select
+
+        If wsImportVoix.Cells(i, "M").value = "1G" And wsImportVoix.Cells(i, "S").value = "LTE" Then
+            count1G = count1G + 1
+            currentValue = wsImportVoix.Cells(i, "O").value / 1000
+            sum1G = sum1G + currentValue
+            If currentValue > maxValue1G Then
+                maxValue1G = currentValue
+            End If
+            If currentValue < minValue1G And currentValue <> 0 Then
+                minValue1G = currentValue
+            End If
+            If wsImportVoix.Cells(i, "O").value <> 0 Then
+                count1GNonZero = count1GNonZero + 1
+            End If
+        ElseIf wsImportVoix.Cells(i, "M").value = "/sdcard/QualiPoc/references/Generated/1GB.dat" And wsImportVoix.Cells(i, "S").value = "LTE" Then
+            count1GB = count1GB + 1
+            currentValue = wsImportVoix.Cells(i, "O").value / 1000
+            sum1GB = sum1GB + currentValue
+            If currentValue > maxValue1GB Then
+                maxValue1GB = currentValue
+            End If
+            If currentValue < minValue1GB And currentValue <> 0 Then
+                minValue1GB = currentValue
+            End If
+            If wsImportVoix.Cells(i, "O").value <> 0 Then
+                count1GBNonZero = count1GBNonZero + 1
+            End If
+        End If
+    Next i
+
+  ' Afficher les résultats dans la feuille Couverture Voix
+    wsCouvertureVoix.Cells(27, 1).value = countLTE
+    wsCouvertureVoix.Cells(27, 2).value = countUMTS
+    wsCouvertureVoix.Cells(27, 3).value = countGSM
+
+    wsCouvertureVoix.Cells(30, "J").value = count1G
+    wsCouvertureVoix.Cells(30, "K").value = count1GNonZero
+    wsCouvertureVoix.Cells(30, "L").value = count1G - count1GNonZero
+    wsCouvertureVoix.Cells(30, "M").value = WorksheetFunction.Round(sum1G / count1G, 2)
+    wsCouvertureVoix.Cells(30, "N").value = WorksheetFunction.Round(maxValue1G, 2)
+    wsCouvertureVoix.Cells(30, "O").value = WorksheetFunction.Round(minValue1G, 2)
+    wsCouvertureVoix.Cells(30, "I").value = WorksheetFunction.Round((count1GNonZero / count1G) * 100, 2)
+
+    wsCouvertureVoix.Cells(31, "J").value = count1GB
+    wsCouvertureVoix.Cells(31, "K").value = count1GBNonZero
+    wsCouvertureVoix.Cells(31, "L").value = count1GB - count1GBNonZero
+    wsCouvertureVoix.Cells(31, "M").value = WorksheetFunction.Round(sum1GB / count1GB, 2)
+    wsCouvertureVoix.Cells(31, "N").value = WorksheetFunction.Round(maxValue1GB, 2)
+    wsCouvertureVoix.Cells(31, "O").value = WorksheetFunction.Round(minValue1GB, 2)
+    wsCouvertureVoix.Cells(31, "I").value = WorksheetFunction.Round((count1GBNonZero / count1GB) * 100, 2)
+    
+    Dim count3G As Long, count3GNonZero As Long
+    Dim count3GB As Long, count3GBNonZero As Long
+    Dim sum3G As Double, sum3GB As Double
+    Dim maxValue3G As Double, minValue3G As Double
+    Dim maxValue3GB As Double, minValue3GB As Double
+    
+    ' Définir les feuilles de calcul
+    Set wsImportVoix = Worksheets("Import Voix_Data")
+    Set wsCouvertureVoix = Worksheets("Couverture Voix_Data")
+
+    ' Déterminer la dernière ligne de la colonne B de la feuille Import Voix
+    LastRow = wsImportVoix.Cells(wsImportVoix.Rows.count, "B").End(xlUp).row
+    
+    ' Initialiser les compteurs et les valeurs minimales et maximales
+    InitializeCountersAndMinMaxValues count3G, count3GNonZero, count3GB, count3GBNonZero, maxValue3G, minValue3G, maxValue3GB, minValue3GB
+
+    ' Compter les occurrences pour les données 3G
+    For i = 2 To LastRow
+        If wsImportVoix.Cells(i, "M").value = "1G" And wsImportVoix.Cells(i, "S").value = "UMTS" Then
+            ProcessData wsImportVoix, i, count3G, count3GNonZero, sum3G, maxValue3G, minValue3G
+        ElseIf wsImportVoix.Cells(i, "M").value = "/sdcard/QualiPoc/references/Generated/1GB.dat" And wsImportVoix.Cells(i, "S").value = "UMTS" Then
+            ProcessData wsImportVoix, i, count3GB, count3GBNonZero, sum3GB, maxValue3GB, minValue3GB
+        End If
+    Next i
+
+    ' Afficher les résultats dans la feuille Couverture Voix
+    DisplayResults wsCouvertureVoix, 26, count3G, count3GNonZero, sum3G, maxValue3G, minValue3G
+    DisplayResults wsCouvertureVoix, 27, count3GB, count3GBNonZero, sum3GB, maxValue3GB, minValue3GB
+End Sub
+
+Sub InitializeCountersAndMinMaxValues(count As Long, countNonZero As Long, countB As Long, countBNonZero As Long, maxValue As Double, minValue As Double, maxValueB As Double, minValueB As Double)
+    count = 0
+    countNonZero = 0
+    countB = 0
+    countBNonZero = 0
+    maxValue = -1
+    minValue = 10000000000#
+    maxValueB = -1
+    minValueB = 10000000000#
+End Sub
+
+Sub ProcessData(wsImportVoix As Worksheet, i As Long, ByRef count As Long, ByRef countNonZero As Long, ByRef sum As Double, ByRef maxValue As Double, ByRef minValue As Double)
+    count = count + 1
+    Dim currentValue As Double
+    currentValue = wsImportVoix.Cells(i, "O").value / 1000
+    sum = sum + currentValue
+    If currentValue <> 0 Then
+        countNonZero = countNonZero + 1
+        maxValue = WorksheetFunction.Max(maxValue, currentValue)
+        minValue = WorksheetFunction.Min(minValue, currentValue)
+    End If
+End Sub
+
+Sub DisplayResults(wsCouvertureVoix As Worksheet, row As Long, count As Long, countNonZero As Long, sum As Double, maxValue As Double, minValue As Double)
+    wsCouvertureVoix.Cells(row, "J").value = count
+    wsCouvertureVoix.Cells(row, "K").value = countNonZero
+    wsCouvertureVoix.Cells(row, "L").value = count - countNonZero
+    wsCouvertureVoix.Cells(row, "M").value = WorksheetFunction.Round(sum / countNonZero, 2)
+    wsCouvertureVoix.Cells(row, "N").value = WorksheetFunction.Round(maxValue, 2)
+    wsCouvertureVoix.Cells(row, "O").value = WorksheetFunction.Round(minValue, 2)
+    wsCouvertureVoix.Cells(row, "I").value = Round((countNonZero / count) * 100, 2)
+    Dim wsImportVoix As Worksheet
+    Dim LastRow As Long
+    Dim i As Long
+    Dim completedCount As Long
+    Dim failedCount As Long
+    Dim droppedCount As Long
+    Dim average As Double
+    Dim percent As Double
+
+    ' Définir les feuilles de calcul
+    Set wsImportVoix = Worksheets("Import Voix_Data")
+    Set wsCouvertureVoix = Worksheets("Couverture Voix_Data")
+
+    ' Déterminer la dernière ligne de la colonne B de la feuille Import Voix_Data
+    LastRow = wsImportVoix.Cells(wsImportVoix.Rows.count, "B").End(xlUp).row
+
+    ' Initialiser les compteurs
+    count = 0
+    completedCount = 0
+    failedCount = 0
+    droppedCount = 0
+
+    ' Compter le nombre d'occurrences de "Completed", "Failed" et "Dropped"
+    For i = 2 To LastRow
+        If wsImportVoix.Cells(i, "B").value = "Completed" Then
+            completedCount = completedCount + 1
+        ElseIf wsImportVoix.Cells(i, "B").value = "Failed" Then
+            failedCount = failedCount + 1
+        ElseIf wsImportVoix.Cells(i, "B").value = "Dropped" Then
+            droppedCount = droppedCount + 1
+        End If
+If IsNumeric(wsImportVoix.Cells(i, "F").value) Then
+    sum = sum + wsImportVoix.Cells(i, "F").value
+End If
+    Next i
+
+    ' Calculer la moyenne des valeurs de la colonne F
+    If count > 0 Then
+        average = sum / count
+    Else
+        average = 0
+    End If
+
+    ' Calculer le pourcentage des occurrences de "Completed" dans la colonne B
+    If completedCount + failedCount + droppedCount > 0 Then
+        percent = (completedCount / (completedCount + failedCount + droppedCount)) * 100
+    Else
+        percent = 0
+    End If
+
+    ' Afficher les résultats dans la feuille Couverture Voix_Data
+    wsCouvertureVoix.Cells(5, "J").value = completedCount + failedCount + droppedCount
+    wsCouvertureVoix.Cells(5, "k").value = completedCount
+    wsCouvertureVoix.Cells(5, "l").value = failedCount
+    wsCouvertureVoix.Cells(5, "m").value = droppedCount
+    wsCouvertureVoix.Cells(5, "n").value = WorksheetFunction.Round(average, 2)
+    wsCouvertureVoix.Cells(5, "i").value = WorksheetFunction.Round(percent, 2) & "%"
+    
+        Dim wsImport As Worksheet
+    Dim wsCoverage As Worksheet
+    Dim countLTE As Long
+    Dim countUMTS As Long
+    Dim countGSM As Long
+    
+    ' D?finir les feuilles de calcul
+    Set wsImport = Worksheets("Import Voix_Data")
+    Set wsCoverage = Worksheets("Couverture Voix_Data")
+    
+    ' D?terminer la derni?re ligne de la colonne 9 de la feuille Import Voix_Data
+    LastRow = wsImport.Cells(wsImport.Rows.count, "I").End(xlUp).row
+    
+    ' Compter les occurrences de chaque technologie
+    For i = 1 To LastRow
+        Select Case LCase(wsImport.Cells(i, "I").value)
+            Case "lte"
+                countLTE = countLTE + 1
+            Case "umts"
+                countUMTS = countUMTS + 1
+            Case "gsm"
+                countGSM = countGSM + 1
+        End Select
+    Next i
+    
+    ' Afficher les r?sultats dans la feuille Couverture Voix_Data
+    wsCoverage.Cells(2, 1).value = countLTE
+    wsCoverage.Cells(2, 2).value = countUMTS
+    wsCoverage.Cells(2, 3).value = countGSM
+
+
+End Sub
+
+
